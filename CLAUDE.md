@@ -5,7 +5,7 @@
 Every project follows 7 phases in order. Each phase requires explicit user confirmation before moving to the next. Never skip a phase.
 
 ```
-[1] Requirements → [2] Epics & Stories → [3] Figma Design → [4] Tech Stack → [5] Build → [6] Test → [7] Deploy
+[1] Requirements → [2] Epics & Stories → [3] Figma Design → [4] Tech Stack → [5] Build → [6] Test → [7] Deploy → [8] Report
 ```
 
 ---
@@ -169,6 +169,70 @@ Steps:
 5. Verify with a health-check HTTP request to the production URL
 6. Update `CLAUDE.md` status to `PRODUCTION` with deploy date
 7. Tell the user: "Project is live at [URL]."
+
+---
+
+## Phase 8 — Project Report
+
+**Goal:** Generate a full written report of the completed project.
+
+Trigger: Automatically after Phase 7 is confirmed complete.
+
+Steps:
+1. Generate `PROJECT-REPORT.md` in the project root with the following sections:
+
+   ```
+   # Project Report — <Project Name>
+   
+   ## Overview
+   - One paragraph summary of what was built and why
+   
+   ## Timeline
+   - Date started / date shipped
+   - Total phases completed
+   
+   ## Requirements Summary
+   - Problem statement
+   - Target users
+   - Core flows delivered
+   - Items that were out of scope
+   
+   ## Epics & Stories
+   - Table: Epic | Stories | Status
+   - Total acceptance criteria written
+   - Total edge cases covered
+   
+   ## Design
+   - Figma file link
+   - Number of screens/frames designed
+   - Key design decisions
+   
+   ## Tech Stack
+   - Framework, language, libraries used
+   - Reasoning for choices
+   
+   ## Testing
+   - Total tests written
+   - Pass rate (X/Y)
+   - Test types (unit / integration / E2E)
+   
+   ## Deployment
+   - Platform (web / Android / iOS)
+   - Build tool used
+   - Live URL or store link
+   - GitHub repo link
+   
+   ## Lessons Learned
+   - What went well
+   - What was challenging
+   - What would be done differently
+   
+   ## Next Steps
+   - Suggested improvements or features for v2
+   ```
+
+2. Push `PROJECT-REPORT.md` to GitHub
+3. Tell the user: "Full project report saved to PROJECT-REPORT.md and pushed to GitHub."
 
 ---
 
