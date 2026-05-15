@@ -245,3 +245,29 @@ Steps:
 - Keep epic files updated as the single source of truth for what is done vs pending
 - If the user asks "where are we?" summarize the current phase and what's pending
 - Commit and push to GitHub after each completed phase
+
+---
+
+## Lessons Learned (Applied to All Future Projects)
+
+These rules come from real mistakes made during the Smart Calculator project. Follow them every time.
+
+### 📦 Dependencies
+- **Always use `npx expo install <package>` — never `npm install`** for React Native / Expo projects
+  - `npx expo install` automatically picks the SDK-compatible version
+  - `npm install` installs the latest version which often breaks the build
+  - Run `npx expo install` for every single package: reanimated, async-storage, etc.
+
+### 🏗️ Build
+- **Run a test EAS build at the end of Phase 5 (Build), not Phase 7 (Deploy)**
+  - Catch build errors (missing babel plugins, Node version mismatches, broken deps) early
+  - Command: `eas build --profile preview --platform android --non-interactive`
+  - Fix all build errors before moving to Phase 6 (Testing)
+
+### 🎨 Figma MCP
+- **Set up the Figma MCP plugin before Phase 3 (Design) begins — not during it**
+  - Steps to do at project start:
+    1. Start WebSocket server: `~/.bun/bin/bun /usr/local/lib/node_modules/claude-talk-to-figma-mcp/dist/socket.js &`
+    2. Open Figma Desktop → Plugins → Development → Claude Talk to Figma Plugin → Run → Connect
+    3. Confirm green "Connected" status before entering Phase 3
+  - If plugin code.js is missing: download from sonnylazuardi/cursor-talk-to-figma-mcp on GitHub
