@@ -2,10 +2,10 @@
 
 ## Product Development Pipeline
 
-Every project follows 7 phases in order. Each phase requires explicit user confirmation before moving to the next. Never skip a phase.
+Every project follows 10 phases in order. Each phase requires explicit user confirmation before moving to the next. Never skip a phase.
 
 ```
-[1] Requirements → [2] Epics & Stories → [3] Figma Design → [4] Tech Stack → [5] Build → [6] Test → [7] Deploy → [8] Report
+[1] Requirements → [2] Planning → [3] Plan Report → [4] Epics & Stories → [5] Figma Design → [6] Tech Stack → [7] Build → [8] Test → [9] Deploy → [10] Report
 ```
 
 ---
@@ -27,6 +27,8 @@ When the user says "start a new project", "new project", or describes an idea fo
    ├── CLAUDE.md                    ← copy from ~/.claude/templates/project-CLAUDE.md
    └── .claude/
        ├── requirements.md          ← copy from ~/.claude/templates/requirements.md
+       ├── plan.md                  ← created in Phase 2
+       ├── plan-report.md           ← created in Phase 3
        ├── epics/                   ← empty folder
        ├── design/
        │   ├── figma.md
@@ -57,7 +59,59 @@ Steps:
 
 ---
 
-## Phase 2 — Epics, User Stories, Acceptance Criteria & Edge Cases
+## Phase 2 — Planning
+
+**Goal:** Think through the full solution before committing to stories or code.
+
+Steps:
+1. Based on the confirmed requirements, draft a structured plan covering:
+   - Proposed solution approach (how the product will work at a high level)
+   - Key technical decisions to make (platform, architecture, data flow)
+   - Risks and open questions
+   - Suggested epic breakdown (names only, no stories yet)
+   - Rough effort estimate per epic (small / medium / large)
+2. Write the plan to `.claude/plan.md`
+3. Present the plan to the user and ask: "Does this plan look right? Any changes before we finalize it?"
+
+**Do not proceed to Phase 3 until user confirms.**
+
+---
+
+## Phase 3 — Plan Report
+
+**Goal:** Produce a clean, final plan document the user can reference throughout the project.
+
+Steps:
+1. Incorporate any changes from Phase 2 review
+2. Write the final plan to `.claude/plan-report.md` with these sections:
+   ```
+   # Plan Report — <Project Name>
+
+   ## Solution Overview
+   - What we are building and how it works
+
+   ## Epic Breakdown
+   - Table: Epic | Description | Effort
+
+   ## Key Decisions
+   - Platform, architecture, tech choices to be confirmed in Phase 6
+
+   ## Risks & Mitigations
+   - Known risks and how we will handle them
+
+   ## Out of Scope
+   - What we are deliberately not building
+
+   ## Success Criteria
+   - How we will know the project is done
+   ```
+3. Show the final report to the user and ask: "Is this plan confirmed? We will now move to epics and stories."
+
+**Do not proceed to Phase 4 until user confirms.**
+
+---
+
+## Phase 4 — Epics, User Stories, Acceptance Criteria & Edge Cases
 
 **Goal:** Break requirements into well-defined epics and stories.
 
@@ -71,11 +125,11 @@ Steps:
 4. Show a summary table of all epics and story counts
 5. Ask: "Do the epics and stories look complete? Confirm or tell me what to change."
 
-**Do not proceed to Phase 3 until user confirms.**
+**Do not proceed to Phase 5 until user confirms.**
 
 ---
 
-## Phase 3 — Figma Design
+## Phase 5 — Figma Design
 
 **Goal:** Create or review designs for every story.
 
@@ -89,13 +143,13 @@ Steps:
 5. For each confirmed screen, add a line to `.claude/design/decisions.md`
 6. Ask: "Are all designs confirmed? Confirm to move to Phase 4."
 
-**Do not proceed to Phase 4 until user confirms.**
+**Do not proceed to Phase 6 until user confirms.**
 
 Note: Figma MCP must be configured in `~/.claude/settings.json` with a valid personal access token.
 
 ---
 
-## Phase 4 — Tech Stack Decision
+## Phase 6 — Tech Stack Decision
 
 **Goal:** Choose the right technology for this project.
 
@@ -111,11 +165,11 @@ Steps:
 3. Write the decision to `.claude/tech-stack.md`
 4. Ask: "Does this stack work for you? Confirm or override any part of it."
 
-**Do not proceed to Phase 5 until user confirms.**
+**Do not proceed to Phase 7 until user confirms.**
 
 ---
 
-## Phase 5 — Build
+## Phase 7 — Build
 
 **Goal:** Implement all epics story by story.
 
@@ -130,11 +184,11 @@ Steps:
    - Update `CLAUDE.md` current phase and last completed epic
 6. Ask: "Epic [N] is done. Ready to continue to the next epic?"
 
-**Do not proceed to Phase 6 until all epics are complete and user confirms.**
+**Do not proceed to Phase 8 until all epics are complete and user confirms.**
 
 ---
 
-## Phase 6 — Testing
+## Phase 8 — Testing
 
 **Goal:** Verify all functionality before deploying.
 
@@ -149,11 +203,11 @@ Steps:
 6. Report results: X/Y tests passing
 7. Ask: "All tests pass. Ready to deploy?"
 
-**Do not proceed to Phase 7 until all tests pass and user confirms.**
+**Do not proceed to Phase 9 until all tests pass and user confirms.**
 
 ---
 
-## Phase 7 — Deploy to Hostinger VPS
+## Phase 9 — Deploy to Hostinger VPS
 
 **Goal:** Ship to production.
 
@@ -172,7 +226,7 @@ Steps:
 
 ---
 
-## Phase 8 — Project Report
+## Phase 10 — Project Report
 
 **Goal:** Generate a full written report of the completed project.
 
