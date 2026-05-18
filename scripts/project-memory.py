@@ -86,11 +86,12 @@ def api(cfg, method, path, body=None):
         sys.exit(1)
 
 def cmd_read(cfg, project):
+    print(f"Fetching from cloud: {cfg['api_url']}/memory/{project}")
     data    = api(cfg, 'GET', f'/memory/{project}')
     entries = data.get('entries', [])
     if not entries:
-        print(f"No memory found for project '{project}'.")
-        print("Add entries with: python project-memory.py add --project <name> --entry <text>")
+        print(f"\nNo cloud memory found for project '{project}' yet.")
+        print("Use /remember <text> to start saving memories for this project.")
         return
 
     from collections import defaultdict
@@ -121,6 +122,7 @@ def cmd_read(cfg, project):
             print()
 
 def cmd_add(cfg, project, section, entry, device='windows-main'):
+    print(f"Saving to cloud: {cfg['api_url']}/memory → [{section}] {entry[:60]}")
     data = api(cfg, 'POST', '/memory', {
         'project': project,
         'section': section,
@@ -154,9 +156,11 @@ def main():
 
     project = args.project or detect_project()
     if not project:
-        print("Error: could not detect project. Run from a project directory or pass --project <name>")
+        print("Error: you are in your home directory — no project detected.")
+        print("Navigate to a project folder first, or pass --project <name>")
         sys.exit(1)
     args.project = project
+    print(f"Project: {project}")
 
     if args.cmd == 'read':
         cmd_read(cfg, args.project)
