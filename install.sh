@@ -30,3 +30,17 @@ echo "  Generated: settings.json"
 echo ""
 echo "Done! Claude Code global configuration installed."
 echo "Restart Claude Code to activate hooks and commands."
+echo ""
+
+# VPS lessons config setup
+if [ -f "$CLAUDE_DIR/lessons-api.json" ]; then
+    echo "VPS config already exists at $CLAUDE_DIR/lessons-api.json — skipping setup."
+else
+    echo "VPS Lessons API not configured on this device."
+    read -p "Set up VPS lesson sync now? [y/N]: " setup_vps
+    if [ "$setup_vps" = "y" ] || [ "$setup_vps" = "Y" ]; then
+        python3 "$CLAUDE_DIR/scripts/setup-vps-config.py"
+    else
+        echo "Skipped. Run later: python3 ~/.claude/scripts/setup-vps-config.py"
+    fi
+fi
