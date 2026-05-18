@@ -38,3 +38,18 @@ Write-Host "  Generated: settings.json" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Done! Claude Code global configuration installed." -ForegroundColor Green
 Write-Host "Restart Claude Code to activate hooks and commands." -ForegroundColor Yellow
+Write-Host ""
+
+# VPS lessons config setup
+$vpsConfig = "$ClaudeDir\lessons-api.json"
+if (Test-Path $vpsConfig) {
+    Write-Host "VPS config already exists at $vpsConfig — skipping setup." -ForegroundColor Gray
+} else {
+    Write-Host "VPS Lessons API not configured on this device." -ForegroundColor Yellow
+    $setupVps = Read-Host "Set up VPS lesson sync now? [y/N]"
+    if ($setupVps -eq 'y' -or $setupVps -eq 'Y') {
+        python "$ClaudeDir\scripts\setup-vps-config.py"
+    } else {
+        Write-Host "Skipped. Run later: python `"$ClaudeDir\scripts\setup-vps-config.py`"" -ForegroundColor Gray
+    }
+}
