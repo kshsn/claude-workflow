@@ -7,7 +7,7 @@ SAFE_PATTERNS = [
 ]
 
 DANGEROUS_PATTERNS = [
-    (r'\brm\s+-rf\s+/', "rm -rf / detected — would wipe the filesystem"),
+    (r'\brm\s+-rf\s+/(?:$|\s|etc|usr|var|boot|bin|sbin|lib|proc|sys|dev)', "rm -rf on system root or critical directory is blocked"),
     (r'git\s+push\s+.*--force.*(main|master)', "Force push to main/master is blocked"),
     (r'\bDROP\s+(DATABASE|TABLE)\b', "SQL DROP DATABASE/TABLE is blocked"),
     (r'git\s+reset\s+--hard\s+HEAD~[2-9]', "Hard reset of multiple commits requires explicit confirmation"),
