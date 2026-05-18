@@ -9,7 +9,7 @@ Arguments: $ARGUMENTS
 Steps:
 1. Extract the keyword from $ARGUMENTS. If empty, run `/memory` first so the user can pick the right keyword.
 
-2. Detect project name from the current working directory name.
+2. Detect project name (CLAUDE.md → git remote → package.json → folder name).
 
 3. Run:
    ```bash

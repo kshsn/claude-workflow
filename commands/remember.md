@@ -9,7 +9,11 @@ Arguments: $ARGUMENTS
 Steps:
 1. Extract the text from $ARGUMENTS. If empty, ask: "What should I remember?"
 
-2. Detect project name from the current working directory name.
+2. Detect project name using this priority:
+   - Check `CLAUDE.md` first heading in cwd
+   - Run `git remote get-url origin` and extract repo name
+   - Check `package.json` name field
+   - Fall back to directory name (but never use the home folder name)
 
 3. Classify into the best section:
    - **Decisions** — a choice was made ("decided to use X instead of Y because Z")
