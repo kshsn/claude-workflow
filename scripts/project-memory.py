@@ -11,11 +11,56 @@ Usage:
 Sections: Decisions | Active Work | Blockers | Key Facts | Session Log | Notes
 Config:   ~/.claude/lessons-api.json
 """
-import argparse, json, os, sys
+import argparse, json, os, re, subprocess, sys
 from urllib.request import urlopen, Request
 from urllib.error import URLError
 
 LOCAL_CFG = os.path.join(os.path.expanduser('~'), '.claude', 'lessons-api.json')
+
+def detect_project():
+    """Detect project name from CLAUDE.md → git remote → package.json → folder name."""
+    cwd = os.getcwd()
+
+    # 1. CLAUDE.md first heading
+    claude_md = os.path.join(cwd, 'CLAUDE.md')
+    if os.path.exists(claude_md):
+        with open(claude_md, encoding='utf-8', errors='ignore') as f:
+            for line in f:
+                m = re.match(r'^#\s+(.+?)(?:\s+[-—].*)?$', line.strip())
+                if m:
+                    name = m.group(1).strip().lower().replace(' ', '-')
+                    if name not in ('claude', 'claude-global-workflow', 'global'):
+                        return name
+
+    # 2. git remote origin
+    try:
+        out = subprocess.check_output(
+            ['git', 'remote', 'get-url', 'origin'],
+            stderr=subprocess.DEVNULL, cwd=cwd, timeout=4
+        ).decode().strip()
+        repo = re.split(r'[/:]', out.rstrip('.git'))[-1].replace('.git', '')
+        if repo:
+            return repo
+    except Exception:
+        pass
+
+    # 3. package.json
+    pkg = os.path.join(cwd, 'package.json')
+    if os.path.exists(pkg):
+        try:
+            with open(pkg) as f:
+                name = json.load(f).get('name', '')
+            if name:
+                return name
+        except Exception:
+            pass
+
+    # 4. folder name (but skip home dir)
+    home = os.path.expanduser('~')
+    if cwd != home:
+        return os.path.basename(cwd)
+
+    return None
 
 SECTIONS = ['Decisions', 'Active Work', 'Blockers', 'Key Facts', 'Session Log', 'Notes']
 
@@ -97,7 +142,7 @@ def cmd_delete(cfg, project, entry_id):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('cmd', choices=['read', 'add', 'forget', 'delete'])
-    parser.add_argument('--project',  required=True)
+    parser.add_argument('--project',  default='')
     parser.add_argument('--section',  default='Notes')
     parser.add_argument('--entry',    default='')
     parser.add_argument('--keyword',  default='')
@@ -106,6 +151,12 @@ def main():
     args = parser.parse_args()
 
     cfg = load_cfg()
+
+    project = args.project or detect_project()
+    if not project:
+        print("Error: could not detect project. Run from a project directory or pass --project <name>")
+        sys.exit(1)
+    args.project = project
 
     if args.cmd == 'read':
         cmd_read(cfg, args.project)
