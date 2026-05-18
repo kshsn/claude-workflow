@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-SessionStart hook — prints session rules and injects recent lessons from VPS.
-Claude starts each session already aware of the most recent mistakes.
+SessionStart hook — injects:
+1. Session rules
+2. Project memory from VPS (detected from cwd project name)
+3. Recent global lessons from VPS
 """
 import sys, json, datetime, os
 from urllib.request import urlopen, Request
@@ -19,38 +21,79 @@ RULES = (
     "5. Commit one file at a time — never git add ."
 )
 
-def fetch_recent_lessons(limit=5):
+def load_cfg():
     if not os.path.exists(LOCAL_CFG):
-        return []
+        return None
     try:
         with open(LOCAL_CFG) as f:
-            cfg = json.load(f)
-        url = f"{cfg['api_url']}/lessons?limit={limit}"
-        req = Request(url, headers={'x-api-key': cfg['api_key']})
-        with urlopen(req, timeout=4) as resp:
-            data = json.loads(resp.read().decode())
-            lessons = data if isinstance(data, list) else data.get('lessons', [])
-            return lessons[-limit:]
+            return json.load(f)
     except Exception:
-        return []
+        return None
 
-def log_session_start():
+def api_get(cfg, path):
+    try:
+        req = Request(f"{cfg['api_url']}{path}", headers={'x-api-key': cfg['api_key']})
+        with urlopen(req, timeout=4) as r:
+            return json.loads(r.read().decode())
+    except Exception:
+        return None
+
+def detect_project():
+    """Use the current directory name as the project identifier."""
+    cwd = os.getcwd()
+    return os.path.basename(cwd)
+
+def fetch_project_memory(cfg, project):
+    data = api_get(cfg, f'/memory/{project}')
+    if not data:
+        return []
+    return data.get('entries', [])
+
+def fetch_recent_lessons(cfg, limit=5):
+    data = api_get(cfg, f'/lessons?limit={limit}')
+    if not data:
+        return []
+    lessons = data if isinstance(data, list) else data.get('lessons', [])
+    return lessons[-limit:]
+
+def log_session_start(project):
     try:
         os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
         ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with open(LOG_FILE, 'a', encoding='utf-8') as f:
-            f.write(f"[{ts}] SESSION START\n")
+            f.write(f"[{ts}] SESSION START — project: {project}\n")
     except Exception:
         pass
 
 def main():
-    log_session_start()
+    project = detect_project()
+    log_session_start(project)
     print(RULES)
 
-    recent = fetch_recent_lessons(limit=5)
-    if recent:
-        lines = ["\nRECENT LESSONS (auto-loaded from VPS — avoid repeating these):"]
-        for item in recent:
+    cfg = load_cfg()
+    if not cfg:
+        return
+
+    # Project memory
+    entries = fetch_project_memory(cfg, project)
+    if entries:
+        from collections import defaultdict
+        by_section = defaultdict(list)
+        for e in entries:
+            by_section[e.get('section', 'Notes')].append(e['entry'])
+
+        lines = [f"\nPROJECT MEMORY — {project} (from VPS):"]
+        for section, items in by_section.items():
+            lines.append(f"  [{section}]")
+            for item in items:
+                lines.append(f"    - {item}")
+        print('\n'.join(lines))
+
+    # Global lessons
+    lessons = fetch_recent_lessons(cfg, limit=5)
+    if lessons:
+        lines = ["\nRECENT LESSONS (avoid repeating these):"]
+        for item in lessons:
             cat    = item.get('category', 'general')
             lesson = item.get('lesson', '')
             date   = str(item.get('date', ''))[:10]
