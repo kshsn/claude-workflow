@@ -50,6 +50,16 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_HOME}/hooks/detect-correction.py\""
+          }
+        ]
+      }
     ]
   },
   "permissions": {
