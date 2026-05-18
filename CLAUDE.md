@@ -39,6 +39,7 @@ Phase details: `~/.claude/docs/phases-1-3.md` | `phases-4-6.md` | `phases-7-10.m
 ## Slash Commands Available
 `/phase-start` `/epic-start` `/where-are-we` `/pr-describe`
 `/changelog` `/test-triage` `/deploy`
+`/lesson` `/learning-report`
 
 ---
 
@@ -59,6 +60,12 @@ Phase details: `~/.claude/docs/phases-1-3.md` | `phases-4-6.md` | `phases-7-10.m
 - Never deploy without Phase 8 tests passing
 - Run `security-reviewer-agent` before every commit
 - Commit one file at a time — never `git add .`
+
+## Auto-Lesson Rules (enforced every session)
+- Call `/lesson` immediately after fixing any mistake — don't wait until the end
+- Call `/lesson` whenever the user corrects you (detected automatically by hook)
+- Call `/lesson` when a hook, build, or test fails due to a pattern you should have known
+- At session end: run `/learning-report` if 3+ lessons were logged this session
 
 ## Git: One Commit Per File
 ```bash
