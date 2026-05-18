@@ -1,42 +1,59 @@
-# Requirements — {{PROJECT_NAME}}
+# Requirements — [Project Name]
 
-**Created:** {{DATE}}  
-**Status:** Draft
+**Date:** YYYY-MM-DD
+**Status:** Draft / Confirmed
 
 ---
 
 ## Problem Statement
-{{PROBLEM}}
-
-## Goals
-1. {{GOAL_1}}
-2. {{GOAL_2}}
-3. {{GOAL_3}}
-
-## Non-Goals (explicitly out of scope)
-- {{NON_GOAL_1}}
-- {{NON_GOAL_2}}
-
-## User Types
-| User Type | Description |
-|-----------|-------------|
-| {{TYPE_1}} | {{DESCRIPTION_1}} |
-| {{TYPE_2}} | {{DESCRIPTION_2}} |
-
-## Core Flows
-1. **{{FLOW_1_NAME}}:** {{FLOW_1_DESCRIPTION}}
-2. **{{FLOW_2_NAME}}:** {{FLOW_2_DESCRIPTION}}
-3. **{{FLOW_3_NAME}}:** {{FLOW_3_DESCRIPTION}}
-
-## Constraints
-- **Platform:** {{PLATFORM}}
-- **Deadline:** {{DEADLINE}}
-- **Other:** {{OTHER}}
+<!-- What specific problem are we solving? Who has this problem? -->
 
 ---
 
-## Epic Index
-<!-- Claude: fill this in during Phase 2 -->
-| # | Epic | Stories | Status |
-|---|------|---------|--------|
-| 001 | | | pending |
+## Target Users
+<!-- Who will use this product? Be specific. -->
+- Primary user:
+- Secondary user (if any):
+
+---
+
+## Core User Actions
+<!-- The 3–5 most important things a user needs to be able to do -->
+1.
+2.
+3.
+4.
+5.
+
+---
+
+## Out of Scope
+<!-- What are we explicitly NOT building in this version? -->
+-
+-
+-
+
+---
+
+## Constraints
+| Constraint | Detail |
+|------------|--------|
+| Deadline   |        |
+| Budget     |        |
+| Platform   |        |
+| Other      |        |
+
+---
+
+## Success Criteria
+<!-- How will we know the project is done and working? -->
+-
+-
+-
+
+---
+
+## Open Questions
+<!-- Things that need answering before or during Phase 2 -->
+-
+-

@@ -1,27 +1,72 @@
-# {{PROJECT_NAME}}
+# [Project Name] — CLAUDE.md
 
 ## Status
-**Current Phase:** 1 — Requirements Capture  
-**Last Updated:** {{DATE}}
+- **Current Phase:** 1
+- **Last Completed Phase:** —
+- **Last Completed Epic:** —
+- **Deployment Status:** IN PROGRESS
+
+---
+
+## Project Folder Structure
+```
+<project-name>/
+├── CLAUDE.md
+└── .claude/
+    ├── requirements.md
+    ├── plan.md
+    ├── plan-report.md
+    ├── epics/
+    │   └── epic-001-<slug>.md
+    ├── design/
+    │   ├── figma.md
+    │   └── decisions.md
+    ├── tech-stack.md
+    └── deployment/
+        └── server.md
+```
+
+---
+
+## Session Start Checklist
+At the start of every session:
+1. Read this file to know the current phase
+2. Read `.claude/requirements.md` to recall scope
+3. Read the relevant epic file for the current epic
+4. Ask the user: "Ready to continue Phase [N]?"
+
+---
 
 ## Phase Progress
-- [ ] Phase 1 — Requirements confirmed
-- [ ] Phase 2 — Epics & stories approved
-- [ ] Phase 3 — Design confirmed
-- [ ] Phase 4 — Tech stack decided
-- [ ] Phase 5 — Build complete
-- [ ] Phase 6 — Tests passing
-- [ ] Phase 7 — Deployed to production
+- [ ] Phase 1 — Requirements
+- [ ] Phase 2 — Planning
+- [ ] Phase 3 — Plan Report
+- [ ] Phase 4 — Epics & Stories
+- [ ] Phase 5 — Figma Design
+- [ ] Phase 6 — Tech Stack
+- [ ] Phase 7 — Build
+- [ ] Phase 8 — Testing
+- [ ] Phase 9 — Deploy
+- [ ] Phase 10 — Report
 
-## Quick Links
-- Requirements: `.claude/requirements.md`
-- Epics: `.claude/epics/`
-- Design: `.claude/design/`
-- Tech stack: `.claude/tech-stack.md`
-- Deployment config: `.claude/deployment/server.md`
+---
 
-## Context
-{{ONE_LINE_DESCRIPTION}}
+## Tech Stack
+*(Filled in during Phase 6)*
+- Framework:
+- Language:
+- Database:
+- Styling:
+- Testing:
+- Deployment:
 
-## Session Notes
-<!-- Claude: update this section each session with what was last done and what's next -->
+---
+
+## GitHub Repo
+- URL:
+- Default Branch:
+
+---
+
+## Notes
+<!-- Add project-specific constraints, decisions, or reminders here -->

@@ -1,42 +1,59 @@
-# Deployment — {{PROJECT_NAME}}
+# Deployment — Server Config
 
-## Hostinger VPS
+---
 
-| Field | Value |
-|-------|-------|
-| Host | {{VPS_IP_OR_HOSTNAME}} |
-| SSH User | {{SSH_USER}} |
-| App Path | /var/www/{{PROJECT_NAME}} |
-| PM2 Process | {{PROJECT_NAME}} |
-| Production URL | https://{{DOMAIN}} |
-| Node Version | {{NODE_VERSION}} |
+## VPS Details
+| Field             | Value |
+|-------------------|-------|
+| Host              |       |
+| User              |       |
+| App Path          | /var/www/<project> |
+| PM2 Process Name  |       |
+| Production URL    |       |
+| Node Version      |       |
 
-## Environment Variables (production)
-```
-NODE_ENV=production
-DATABASE_URL=
-PORT=3000
-```
+---
 
 ## Deploy Commands
 ```bash
-# Build locally
+# 1. Build locally
 npm run build
 
-# Sync to server
-rsync -avz --exclude node_modules --exclude .git ./dist {{SSH_USER}}@{{VPS_IP}}:/var/www/{{PROJECT_NAME}}
+# 2. Sync to server (excludes node_modules and .git)
+rsync -avz --exclude node_modules --exclude .git ./dist user@host:/var/www/<project>
 
-# Restart on server
-ssh {{SSH_USER}}@{{VPS_IP}} "cd /var/www/{{PROJECT_NAME}} && npm install --production && pm2 restart {{PROJECT_NAME}}"
+# 3. Install & restart on server
+ssh user@host "cd /var/www/<project> && npm install --production && pm2 restart <process-name>"
 
-# Health check
-curl https://{{DOMAIN}}/health
+# 4. Health check
+curl -f https://<production-url>/health
 ```
 
-## First-Time Server Setup
-```bash
-# On the VPS (run once)
-npm install -g pm2
-mkdir -p /var/www/{{PROJECT_NAME}}
-pm2 startup
+---
+
+## Required Environment Variables
+<!-- List keys only — never commit values -->
 ```
+DATABASE_URL=
+NODE_ENV=production
+PORT=
+JWT_SECRET=
+```
+
+---
+
+## Nginx Config Location
+```
+/etc/nginx/sites-available/<project>
+```
+
+---
+
+## SSL
+- [ ] SSL certificate installed (Let's Encrypt / Certbot)
+- [ ] Auto-renewal configured
+
+---
+
+## Notes
+<!-- Server-specific quirks, firewall rules, reverse proxy setup, etc. -->

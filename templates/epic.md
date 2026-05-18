@@ -1,39 +1,54 @@
-# Epic {{NNN}}: {{EPIC_NAME}}
+# Epic [NNN] — [Epic Name]
 
-**Goal:** {{ONE_SENTENCE_GOAL}}  
-**Phase:** Build  
-**Status:** pending
+**Status:** In Progress / Complete
+**Phase:** 7 — Build
+
+---
+
+## Goal
+<!-- One sentence: what does completing this epic deliver to the user? -->
 
 ---
 
 ## Stories
 
-### US-{{NNN}}-001: As a {{user type}}, I want to {{action}} so that {{value}}
+### US-001 — [Story Name]
+**As a** [user type], **I want to** [action] **so that** [value].
 
-**Acceptance Criteria:**
-- [ ] Given {{context}}, when {{action}}, then {{expected result}}
-- [ ] Given {{context}}, when {{action}}, then {{expected result}}
-- [ ] Given {{context}}, when {{action}}, then {{expected result}}
+#### Acceptance Criteria
+- [ ] Given [context], when [action], then [result]
+- [ ] Given [context], when [action], then [result]
+- [ ] Given [context], when [action], then [result]
 
-**Edge Cases:**
-- What if {{edge_case_1}}?
-- What if {{edge_case_2}}?
-- What if {{edge_case_3}}?
+#### Edge Cases
+- [ ] [What happens if the input is empty / null?]
+- [ ] [What happens if the user is not authenticated?]
+- [ ] [What happens if the network fails?]
 
-**Figma Frame:** {{FRAME_LINK_OR_NAME}}
+**Status:** [ ] Pending | [x] Complete
 
 ---
 
-### US-{{NNN}}-002: As a {{user type}}, I want to {{action}} so that {{value}}
+### US-002 — [Story Name]
+**As a** [user type], **I want to** [action] **so that** [value].
 
-**Acceptance Criteria:**
-- [ ] Given {{context}}, when {{action}}, then {{expected result}}
-- [ ] Given {{context}}, when {{action}}, then {{expected result}}
-- [ ] Given {{context}}, when {{action}}, then {{expected result}}
+#### Acceptance Criteria
+- [ ] Given [context], when [action], then [result]
+- [ ] Given [context], when [action], then [result]
+- [ ] Given [context], when [action], then [result]
 
-**Edge Cases:**
-- What if {{edge_case_1}}?
-- What if {{edge_case_2}}?
-- What if {{edge_case_3}}?
+#### Edge Cases
+- [ ] [Edge case 1]
+- [ ] [Edge case 2]
+- [ ] [Edge case 3]
 
-**Figma Frame:** {{FRAME_LINK_OR_NAME}}
+**Status:** [ ] Pending | [x] Complete
+
+---
+
+## Epic Checklist
+- [ ] All stories marked complete
+- [ ] Type check passing (`tsc --noEmit`)
+- [ ] Linter passing (`eslint .`)
+- [ ] Committed and pushed to GitHub
+- [ ] Project CLAUDE.md updated with last completed epic
