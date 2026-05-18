@@ -39,9 +39,53 @@ def api_get(cfg, path):
         return None
 
 def detect_project():
-    """Use the current directory name as the project identifier."""
+    """Detect project from CLAUDE.md → git remote → package.json → folder name."""
+    import re, subprocess
     cwd = os.getcwd()
-    return os.path.basename(cwd)
+    home = os.path.expanduser('~')
+
+    # 1. CLAUDE.md first heading
+    claude_md = os.path.join(cwd, 'CLAUDE.md')
+    if os.path.exists(claude_md):
+        try:
+            with open(claude_md, encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    m = re.match(r'^#\s+(.+?)(?:\s+[-—].*)?$', line.strip())
+                    if m:
+                        name = m.group(1).strip().lower().replace(' ', '-')
+                        if name not in ('claude', 'claude-global-workflow', 'global'):
+                            return name
+        except Exception:
+            pass
+
+    # 2. git remote origin
+    try:
+        out = subprocess.check_output(
+            ['git', 'remote', 'get-url', 'origin'],
+            stderr=subprocess.DEVNULL, cwd=cwd, timeout=4
+        ).decode().strip()
+        repo = re.split(r'[/:]', out)[-1].replace('.git', '')
+        if repo:
+            return repo
+    except Exception:
+        pass
+
+    # 3. package.json
+    pkg = os.path.join(cwd, 'package.json')
+    if os.path.exists(pkg):
+        try:
+            with open(pkg) as f:
+                name = json.load(f).get('name', '')
+            if name:
+                return name
+        except Exception:
+            pass
+
+    # 4. folder name — skip home dir
+    if cwd != home:
+        return os.path.basename(cwd)
+
+    return None
 
 def fetch_project_memory(cfg, project):
     data = api_get(cfg, f'/memory/{project}')
@@ -74,8 +118,8 @@ def main():
     if not cfg:
         return
 
-    # Project memory
-    entries = fetch_project_memory(cfg, project)
+    # Project memory (only if a real project was detected)
+    entries = fetch_project_memory(cfg, project) if project else []
     if entries:
         from collections import defaultdict
         by_section = defaultdict(list)
