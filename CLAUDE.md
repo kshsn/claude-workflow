@@ -39,7 +39,7 @@ Phase details: `~/.claude/docs/phases-1-3.md` | `phases-4-6.md` | `phases-7-10.m
 ## Slash Commands Available
 `/phase-start` `/epic-start` `/where-are-we` `/pr-describe`
 `/changelog` `/test-triage` `/deploy`
-`/lesson` `/learning-report` `/recall`
+`/lesson` `/learning-report` `/recall` `/new-device`
 
 ---
 
