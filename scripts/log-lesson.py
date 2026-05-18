@@ -28,10 +28,24 @@ def log(category, lesson, why='', trigger='manual'):
         'lesson':   lesson.strip(),
         'why':      why.strip(),
         'trigger':  trigger,   # manual | auto | hook
+        'device':   'windows-main',
     }
     with open(LESSONS_FILE, 'a', encoding='utf-8') as f:
         f.write(json.dumps(entry, ensure_ascii=False) + '\n')
+    _sync_to_vps(entry)
     return entry
+
+def _sync_to_vps(entry: dict) -> None:
+    try:
+        import subprocess
+        script = os.path.join(os.path.dirname(__file__), 'post-lesson-to-api.py')
+        subprocess.run(
+            ['python', script],
+            input=json.dumps(entry),
+            text=True, timeout=8, capture_output=True
+        )
+    except Exception:
+        pass  # Never block lesson logging if VPS sync fails
 
 def main():
     parser = argparse.ArgumentParser()
