@@ -1,375 +1,578 @@
-# Claude Global Workflow
+# Claude Global Workflow — CTO Pipeline
 
-## Product Development Pipeline
+## Product Development Pipeline (Agile)
 
-Every project follows 10 phases in order. Each phase requires explicit user confirmation before moving to the next. Never skip a phase.
+Every project follows 10 phases in strict order. Each phase ends with:
+1. A phase report saved to `.claude/reports/phase-N-report.md`
+2. Commit + push to GitHub
+3. Sync artifacts to the VPS server (staging path)
+
+Each phase requires explicit user confirmation before moving to the next. Never skip a phase.
 
 ```
-[1] Requirements → [2] Planning → [3] Plan Report → [4] Epics & Stories
-→ [5] Tech Stack → [6] Figma Design → [7] Build → [8] Test → [9] Deploy → [10] Report
+[1] Market Research → [2] Plan & Requirements → [3] Epics & Stories (Jira)
+→ [4] GitHub Repo + Tech Stack → [5] Figma Design (UI/UX Agent)
+→ [6] Development (Agile Sprints) → [7] Testing → [8] Deploy to Server
+→ [9] Server Testing → [10] Final Report
+```
+
+---
+
+## Agile Methodology Rules (Apply to All Phases)
+
+- All work is tracked in **Jira** via MCP — every task, bug, and story has a Jira issue
+- Development (Phase 6) runs in **2-week sprints** with sprint planning, daily standups (summary), and sprint review
+- Stories have **story points** (Fibonacci: 1, 2, 3, 5, 8, 13)
+- Priority uses **MoSCoW**: Must Have, Should Have, Could Have, Won't Have
+- Branching: `feature/epic-NNN`, `fix/issue-title`, `release/vX.X` — never commit to `main`
+- All PRs require a description referencing the Jira story key (e.g. `PROJ-42`)
+- Every sprint ends with a sprint report saved to `.claude/reports/sprint-N-report.md`
+
+---
+
+## End-of-Phase Protocol (Every Phase)
+
+Run this at the end of EVERY phase before asking the user to confirm:
+
+```bash
+# 1. Write phase report
+# Save to .claude/reports/phase-N-report.md
+
+# 2. Commit and push to GitHub
+git add -A
+git commit -m "phase N complete: <phase name>"
+git push origin main
+
+# 3. Sync to VPS server (staging)
+# Read server config from .claude/deployment/server.md first
+rsync -avz --exclude node_modules --exclude .git \
+  ./ user@host:/var/www/<project>-staging/
 ```
 
 ---
 
 ## Starting a New Project
 
-When the user says "start a new project", "new project", or describes an idea for the first time:
+When the user says "start a new project", "new project", or `/cto <project-name>`:
 
 1. Ask for the project name if not given
-2. **Create a GitHub repository immediately** (before writing any code):
-   ```bash
-   mkdir <project-name> && cd <project-name> && git init
-   gh repo create <project-name> --public --source=. --remote=origin
-   ```
-   All work happens inside this repo from the start.
-3. Create this folder structure in the current directory:
+2. **Do NOT create the GitHub repo yet** — that happens in Phase 4
+3. Create this local folder structure immediately:
    ```
    <project-name>/
-   ├── CLAUDE.md                    ← copy from ~/.claude/templates/project-CLAUDE.md
+   ├── CLAUDE.md                        ← copy from ~/.claude/templates/project-CLAUDE.md
    └── .claude/
-       ├── requirements.md          ← copy from ~/.claude/templates/requirements.md
-       ├── plan.md                  ← created in Phase 2
-       ├── plan-report.md           ← created in Phase 3
-       ├── epics/                   ← empty folder
+       ├── reports/                     ← phase and sprint reports go here
+       ├── requirements.md              ← Phase 2
+       ├── plan.md                      ← Phase 2
+       ├── plan-report.md               ← Phase 2
+       ├── market-research.md           ← Phase 1
+       ├── epics/                       ← Phase 3 local copies
+       ├── jira.md                      ← Phase 3 Jira project key + issue links
        ├── design/
-       │   ├── figma.md
-       │   └── decisions.md
-       ├── tech-stack.md
+       │   ├── figma.md                 ← Phase 5
+       │   └── decisions.md            ← Phase 5
+       ├── tech-stack.md               ← Phase 4
        └── deployment/
-           └── server.md            ← copy from ~/.claude/templates/server.md
+           └── server.md               ← copy from ~/.claude/templates/server.md
    ```
 4. Enter Phase 1 immediately
 
 ---
 
-## Phase 1 — Requirements Capture
+## Phase 1 — Market Research
 
-**Goal:** Turn a rough idea into a structured requirements document.
+**Goal:** Validate the market before committing to requirements or code.
+
+**Agile context:** This is the discovery sprint. Output feeds directly into Phase 2 backlog.
 
 Steps:
-1. Ask these questions if not already answered:
-   - Who are the target users?
-   - What is the core problem being solved?
-   - What are the 3–5 most important actions users need to do?
-   - What is explicitly out of scope?
-   - Any constraints (deadline, budget, platform)?
-2. Write structured output to `.claude/requirements.md` using the template
-3. Show the user a summary and ask: "Does this capture your requirements? Confirm to move to Phase 2."
+1. Ask the user for a one-line product idea and target audience if not already provided
+2. Research and document the following (use web search + user input):
+   - **Problem Statement:** What pain are we solving? Who feels it most?
+   - **Target Market:** Primary users, secondary users, market size estimate (TAM/SAM/SOM)
+   - **Competitor Analysis:** 3–5 competitors — what they do, pricing, strengths, gaps
+   - **Differentiation:** How is this product different or better?
+   - **Market Risks:** Timing, regulatory, adoption risks
+   - **Opportunity Score:** Rate the opportunity 1–10 with reasoning
+3. Write findings to `.claude/market-research.md`
+4. Generate **Phase 1 Report** → `.claude/reports/phase-1-report.md`:
+   ```
+   # Phase 1 Report — Market Research
+   ## Summary
+   ## Competitors Analyzed
+   ## Key Opportunity
+   ## Risks Identified
+   ## Go / No-Go Recommendation
+   ```
+5. Run end-of-phase protocol (report → git commit → rsync)
+6. Present findings and ask: "Market research complete. Do you want to proceed to Phase 2 (Requirements)?"
 
 **Do not proceed to Phase 2 until user confirms.**
 
 ---
 
-## Phase 2 — Planning
+## Phase 2 — Plan & Requirements
 
-**Goal:** Think through the full solution before committing to stories or code.
+**Goal:** Define exactly what we're building and produce a confirmed plan.
+
+**Agile context:** This populates the product backlog at a high level. Sprints come in Phase 6.
 
 Steps:
-1. Based on the confirmed requirements, draft a structured plan covering:
-   - Proposed solution approach (how the product will work at a high level)
-   - Key technical decisions to make (platform, architecture, data flow)
-   - Risks and open questions
-   - Suggested epic breakdown (names only, no stories yet)
-   - Rough effort estimate per epic (small / medium / large)
-2. Write the plan to `.claude/plan.md`
-3. Present the plan to the user and ask: "Does this plan look right? Any changes before we finalize it?"
+1. Ask focused questions (max 3 at a time) until you have answers to:
+   - Who are the target users? (from Phase 1)
+   - What are the 3–5 core user flows?
+   - What is explicitly out of scope?
+   - What are the constraints (deadline, budget, platform)?
+   - What does success look like (KPIs)?
+2. Write to `.claude/requirements.md` using the requirements template
+3. Draft a plan covering:
+   - Solution approach (how the product works at high level)
+   - Architecture overview (frontend, backend, DB, integrations)
+   - Suggested epic breakdown (names only — stories come in Phase 3)
+   - Effort estimate per epic (S/M/L)
+   - Risks and mitigations
+4. Write plan to `.claude/plan.md`
+5. Write final plan report to `.claude/plan-report.md`:
+   ```
+   # Plan Report — <Project Name>
+   ## Solution Overview
+   ## Epic Breakdown (Table: Epic | Description | Effort | Priority)
+   ## Architecture Overview
+   ## Key Decisions
+   ## Risks & Mitigations
+   ## Out of Scope
+   ## Success Criteria (KPIs)
+   ```
+6. Generate **Phase 2 Report** → `.claude/reports/phase-2-report.md`
+7. Run end-of-phase protocol
+8. Ask: "Plan confirmed? Shall we move to Phase 3 and create all epics and stories in Jira?"
 
 **Do not proceed to Phase 3 until user confirms.**
 
 ---
 
-## Phase 3 — Plan Report
+## Phase 3 — Epics & User Stories (Jira via MCP)
 
-**Goal:** Produce a clean, final plan document the user can reference throughout the project.
+**Goal:** Break the plan into Jira epics and stories with full acceptance criteria. This is the official sprint backlog.
+
+**Agile context:** This creates the product backlog in Jira. Stories are prioritized MoSCoW and estimated in story points.
 
 Steps:
-1. Incorporate any changes from Phase 2 review
-2. Write the final plan to `.claude/plan-report.md` with these sections:
+1. **Create Jira project** via MCP:
+   - Use `createJiraIssue` or check `getVisibleJiraProjects` for an existing project
+   - Record the Jira project key in `.claude/jira.md`
+2. **Create Epics in Jira** (2–6 epics based on plan):
+   - Each epic: name, description, priority, target sprint
+   - Record Jira epic key in `.claude/jira.md`
+3. **Create User Stories under each epic** in Jira:
+   - Format: "As a [user type], I want to [action] so that [value]"
+   - Each story must have:
+     - At least 3 acceptance criteria (Given/When/Then)
+     - At least 3 edge cases in the description
+     - Story points (Fibonacci)
+     - MoSCoW priority label
+     - Assignee: leave unassigned for now
+   - Use `createJiraIssue` with `issuetype: Story`, parent = epic key
+4. **Create local epic files** at `.claude/epics/epic-NNN-<slug>.md` using the template at `~/.claude/templates/epic.md` — include the Jira story key on each story
+5. Write full Jira index (project key, all epic keys, story keys) to `.claude/jira.md`
+6. Show a summary table: Epic | Stories | Total Points | Priority
+7. Generate **Phase 3 Report** → `.claude/reports/phase-3-report.md`:
    ```
-   # Plan Report — <Project Name>
-
-   ## Solution Overview
-   - What we are building and how it works
-
-   ## Epic Breakdown
-   - Table: Epic | Description | Effort
-
-   ## Key Decisions
-   - Platform, architecture, tech choices to be confirmed in Phase 5
-
-   ## Risks & Mitigations
-   - Known risks and how we will handle them
-
-   ## Out of Scope
-   - What we are deliberately not building
-
-   ## Success Criteria
-   - How we will know the project is done
+   # Phase 3 Report — Epics & Stories
+   ## Jira Project: <KEY>
+   ## Epic Summary (Table)
+   ## Total Stories | Total Points
+   ## Sprint Backlog Ready: Yes/No
    ```
-3. Show the final report to the user and ask: "Is this plan confirmed? We will now move to epics and stories."
+8. Run end-of-phase protocol
+9. Ask: "All epics and stories are live in Jira. Ready to set up the GitHub repo and tech stack?"
 
 **Do not proceed to Phase 4 until user confirms.**
 
 ---
 
-## Phase 4 — Epics, User Stories, Acceptance Criteria & Edge Cases
+## Phase 4 — GitHub Repo + Tech Stack
 
-**Goal:** Break requirements into well-defined epics and stories.
+**Goal:** Create the GitHub repository, select the tech stack, and wire up CI/CD before any design or code begins.
 
 Steps:
-1. Group features into 2–6 epics
-2. For each epic, create `.claude/epics/epic-NNN-<slug>.md` using the template at `~/.claude/templates/epic.md`
-3. Each story must have:
-   - User story format: "As a [user type], I want to [action] so that [value]"
-   - At least 3 acceptance criteria (Given/When/Then format)
-   - At least 3 edge cases
-4. Show a summary table of all epics and story counts
-5. Ask: "Do the epics and stories look complete? Confirm or tell me what to change."
+1. **Create GitHub repository:**
+   ```bash
+   mkdir <project-name> && cd <project-name> && git init
+   gh repo create <project-name> --public --source=. --remote=origin
+   ```
+2. **Copy project scaffold:**
+   - `CLAUDE.md` from `~/.claude/templates/project-CLAUDE.md`
+   - `.claude/` folder structure created in "Starting a New Project"
+3. **Tech stack decision:**
+   - Default recommendations:
+     - Full-stack web: Next.js 15 + TypeScript + PostgreSQL + Prisma + Tailwind CSS
+     - Mobile: React Native + Expo + TypeScript + NativeWind
+     - Backend API only: Node.js + Fastify + TypeScript + PostgreSQL + Prisma
+     - Backend (large/complex): NestJS + TypeScript + PostgreSQL + Prisma
+   - Recommend based on project type with rationale
+   - Write decision to `.claude/tech-stack.md`
+4. **Scaffold CI/CD pipeline** at `.github/workflows/deploy.yml`:
+   ```yaml
+   # Trigger: push to main
+   # Jobs: lint → test → build → deploy-staging → (manual approval) → deploy-production
+   ```
+5. **Create GitHub branch protection** on `main`: require PR + passing CI
+6. **Create GitHub environments**: `staging` and `production` with required reviewers
+7. Generate **Phase 4 Report** → `.claude/reports/phase-4-report.md`:
+   ```
+   # Phase 4 Report — GitHub Repo + Tech Stack
+   ## GitHub Repo: <URL>
+   ## Tech Stack Decision
+   ## CI/CD Pipeline: configured / not configured
+   ## Environments: staging, production
+   ```
+8. Run end-of-phase protocol (this is the first push to GitHub)
+9. Ask: "Repo is live and CI/CD is wired. Ready to hand off to UI/UX for design?"
 
 **Do not proceed to Phase 5 until user confirms.**
 
 ---
 
-## Phase 5 — Tech Stack Decision
+## Phase 5 — Figma Design (UI/UX Agent)
 
-**Goal:** Choose the right technology for this project before any design or code begins.
+**Goal:** Produce confirmed designs for every Jira story before any development begins.
 
-Default recommendations:
-- **Full-stack web:** Next.js 15 + TypeScript + PostgreSQL + Prisma + Tailwind CSS
-- **Mobile:** React Native + Expo + TypeScript + NativeWind
-- **Backend API only:** Node.js + Fastify + TypeScript + PostgreSQL + Prisma
-- **Backend (large/complex):** NestJS + TypeScript + PostgreSQL + Prisma
+**Agile context:** Design is treated as a sprint. Each screen maps to a Jira story. Designs are the Definition of Ready for development.
+
+Setup required before this phase:
+- Start WebSocket server: `~/.bun/bin/bun /usr/local/lib/node_modules/claude-talk-to-figma-mcp/dist/socket.js &`
+- Open Figma Desktop → Plugins → Development → Claude Talk to Figma Plugin → Run → Connect
+- Confirm green "Connected" status
 
 Steps:
-1. Recommend a stack based on project type with brief rationale
-2. List all key dependencies and tooling
-3. Write the decision to `.claude/tech-stack.md`
-4. Scaffold a CI/CD pipeline file at `.github/workflows/deploy.yml` with:
-   - lint → test → build → deploy on merge to `main`
-5. Ask: "Does this stack work for you? Confirm or override any part of it."
+1. Ask: "Do you have an existing Figma file? Share the URL or I'll create one."
+2. Use Figma MCP to:
+   - **Existing file:** Read frames, map to Jira stories, list gaps
+   - **New file:** Create frames named after each epic and key story
+3. For each screen/frame:
+   - Name it: `EPIC-NNN / US-NNN-XXX: <story title>`
+   - Note layout decisions in `.claude/design/decisions.md`
+   - Add the Figma frame URL to the corresponding Jira story via `editJiraIssue` (custom field or description)
+4. Write full frame inventory (Figma URL, frame names, Jira story mapping) to `.claude/design/figma.md`
+5. Walk through each screen with the user in chat — confirm or request changes
+6. Update Jira stories: transition design-ready stories to "Ready for Development" status via `transitionJiraIssue`
+7. Generate **Phase 5 Report** → `.claude/reports/phase-5-report.md`:
+   ```
+   # Phase 5 Report — Figma Design
+   ## Figma File: <URL>
+   ## Screens Designed: N
+   ## Stories Linked to Frames: N/N
+   ## Stories Ready for Development: N
+   ## Design Decisions Summary
+   ```
+8. Run end-of-phase protocol
+9. Ask: "All designs confirmed. Ready to start development sprints?"
 
 **Do not proceed to Phase 6 until user confirms.**
 
 ---
 
-## Phase 6 — Figma Design
+## Phase 6 — Development (Agile Sprints)
 
-**Goal:** Create or review designs for every story, using the confirmed tech stack as the platform context.
+**Goal:** Implement all epics story by story in time-boxed sprints using feature branches.
 
-Steps:
-1. Ask: "Do you have an existing Figma file? If yes, share the URL. If no, I'll create one."
-2. Use the Figma MCP to:
-   - **Existing file:** Read the file, map frames to stories, note gaps
-   - **New file:** Create frames named after each epic and key stories
-3. Write frame inventory and links to `.claude/design/figma.md`
-4. Walk through each screen with the user in chat
-5. For each confirmed screen, add a line to `.claude/design/decisions.md`
-6. Ask: "Are all designs confirmed? Confirm to move to Phase 7 (Build)."
-
-**Do not proceed to Phase 7 until user confirms.**
-
-Note: Figma MCP must be configured in `~/.claude/settings.json` with a valid personal access token.
-
----
-
-## Phase 7 — Build
-
-**Goal:** Implement all epics story by story using feature branches.
+**Agile context:** 2-week sprints. Backend and frontend run in parallel where possible. Every story transitions through Jira: To Do → In Progress → In Review → Done.
 
 **⚠️ Before writing any code — always do this first:**
-1. Read `.claude/database-schema.md` to understand the current tables and columns
-2. Check if the feature you're building requires a new table or alters an existing one
-3. Write the migration BEFORE writing any controller, model, or API code
-4. Confirm the migration matches the schema doc — never assume column names
+1. Read `.claude/database-schema.md` to understand current tables and columns
+2. Check if the feature requires a new table or alters an existing one
+3. Write the DB migration BEFORE any controller, model, or API code
+4. Confirm migration matches the schema doc — never assume column names
 
-**Branching strategy:**
-- Create a branch for each epic: `git checkout -b feature/epic-NNN`
-- Merge to `main` via PR after the epic is complete and tests pass
-- Never commit directly to `main`
+**Sprint structure (repeat for each sprint):**
 
-Steps:
-1. Scaffold the project with the chosen framework
-2. Work through epics in order (epic-001 first)
-3. Within each epic, implement stories in order (US-001, US-002, ...)
-4. After each story is complete:
-   - Mark it `[x]` in the epic file
-   - Run type check and linter
-5. After each epic is complete:
-   - Run the full test suite — fix any failures before moving on
-   - Open a PR from `feature/epic-NNN` → `main` and merge
-   - Update `CLAUDE.md` current phase and last completed epic
-6. Ask: "Epic [N] is done. Ready to continue to the next epic?"
+### Sprint Planning
+1. Pull "Ready for Development" stories from Jira
+2. Select stories for this sprint (target 20–40 points)
+3. Transition selected stories to "In Progress" in Jira via `transitionJiraIssue`
+4. Create the sprint branch: `git checkout -b sprint/sprint-N`
 
-**Do not proceed to Phase 8 until all epics are complete and user confirms.**
+### Backend Development
+1. Build API endpoints for sprint stories
+2. Branch per story: `git checkout -b feature/PROJ-NNN-<slug>`
+3. After each endpoint: run type check + linter
+4. Open PR referencing Jira key — merge to sprint branch
+5. Transition Jira story to "In Review" via `transitionJiraIssue`
+
+### Frontend Development
+1. Build UI components using Figma designs as the source of truth
+2. Branch per story: `git checkout -b feature/PROJ-NNN-<slug>`
+3. After each component: run type check + linter
+4. Open PR referencing Jira key — merge to sprint branch
+5. Transition Jira story to "In Review" via `transitionJiraIssue`
+
+### Sprint Review
+1. Demo completed stories against acceptance criteria
+2. Transition accepted stories to "Done" in Jira
+3. Merge sprint branch to `main` via PR
+4. Generate **Sprint N Report** → `.claude/reports/sprint-N-report.md`:
+   ```
+   # Sprint N Report
+   ## Stories Completed: N | Points Delivered: N
+   ## Stories Carried Over: N
+   ## Velocity: N points
+   ## Blockers This Sprint
+   ## Next Sprint Goals
+   ```
+5. Run end-of-phase protocol (commit + push + rsync to staging)
+6. Ask: "Sprint N complete. Start Sprint N+1 or move to testing?"
+
+**Do not proceed to Phase 7 until ALL epics are complete and user confirms.**
 
 ---
 
-## Phase 8 — Testing
+## Phase 7 — Testing
 
-**Goal:** Verify all functionality, security, and user acceptance before deploying.
+**Goal:** Verify all functionality, security, and user acceptance before deploying to production.
+
+**Agile context:** Testing stories are Jira issues of type "Test". Failed tests become bug issues in Jira.
 
 Steps:
-1. Write unit tests for all business logic functions
-2. Write integration tests for all API endpoints
-3. Write E2E smoke tests for the top 3 critical user flows:
+1. **Unit tests:** Write for all business logic functions
+2. **Integration tests:** Write for all API endpoints
+3. **E2E smoke tests** for the top 3 critical user flows:
    - Web: Playwright
    - Mobile: Detox or Maestro
-4. Run the full test suite — fix any failures before continuing
+4. Run full test suite — fix all failures; open Jira bug for each failure, link to affected story
 
 5. **Security checklist (must pass before deploy):**
-   - Run `npm audit` (web/backend) or `flutter pub outdated` (mobile) — fix critical vulnerabilities
-   - Confirm no `.env` files or secrets are committed (`git log --all -- '*.env'`)
-   - Verify all API endpoints validate and sanitize user input
-   - Confirm authentication is required on all protected routes
+   - `npm audit` — fix all critical/high vulnerabilities
+   - `git log --all -- '*.env'` — confirm no secrets committed
+   - All API endpoints validate and sanitize user input
+   - Authentication required on all protected routes
+   - OWASP Top 10 checklist reviewed
 
 6. **UAT (User Acceptance Testing):**
-   - Demo the product to the user/client against each epic's acceptance criteria
-   - User must explicitly confirm each epic is working as expected
-   - Log any change requests and implement before proceeding
+   - Demo against each epic's acceptance criteria
+   - User confirms each epic is working as expected
+   - Log any change requests as Jira bugs and fix before proceeding
 
-7. Report results: X/Y tests passing, security checklist passed, UAT confirmed
-8. Ask: "All tests pass, security checked, UAT confirmed. Ready to deploy?"
+7. Transition all tested stories to "Done" in Jira
+8. Generate **Phase 7 Report** → `.claude/reports/phase-7-report.md`:
+   ```
+   # Phase 7 Report — Testing
+   ## Test Results: X/Y passing
+   ## Test Types: unit / integration / E2E
+   ## Security Checklist: PASSED / FAILED (list issues)
+   ## Bugs Found: N | Bugs Fixed: N | Open: N
+   ## UAT: confirmed by <name>
+   ```
+9. Run end-of-phase protocol
+10. Ask: "All tests pass, security checked, UAT confirmed. Ready to deploy to server?"
 
-**Do not proceed to Phase 9 until all tests pass, security checklist is clean, and user confirms UAT.**
+**Do not proceed to Phase 8 until all tests pass, security checklist is clean, and user confirms UAT.**
 
 ---
 
-## Phase 9 — Deploy to Hostinger VPS
+## Phase 8 — Deploy to Server
 
-**Goal:** Ship to production via staging first.
+**Goal:** Ship to production via staging first. Zero downtime.
 
 Steps:
-1. Read `.claude/deployment/server.md` for host, user, app path, PM2 process name, staging URL
+1. Read `.claude/deployment/server.md` for host, user, app path, PM2 process name, staging URL, production URL
 2. Build the production bundle
 
 3. **Step A — Deploy to staging:**
    ```bash
-   rsync -avz --exclude node_modules --exclude .git ./dist user@host:/var/www/<project>-staging
-   ssh user@host "cd /var/www/<project>-staging && npm install --production && pm2 restart <process-name>-staging"
+   rsync -avz --exclude node_modules --exclude .git \
+     ./dist user@host:/var/www/<project>-staging/
+   ssh user@host "cd /var/www/<project>-staging && \
+     npm install --production && pm2 restart <process-name>-staging"
    ```
-   - Run a health check against the staging URL
-   - Ask user to verify on staging before proceeding
+   - Run health check against staging URL
+   - Ask user to verify staging before proceeding
 
 4. **Step B — Promote to production (after staging confirmed):**
    ```bash
-   rsync -avz --exclude node_modules --exclude .git ./dist user@host:/var/www/<project>
-   ssh user@host "cd /var/www/<project> && npm install --production && pm2 restart <process-name>"
+   rsync -avz --exclude node_modules --exclude .git \
+     ./dist user@host:/var/www/<project>/
+   ssh user@host "cd /var/www/<project> && \
+     npm install --production && pm2 restart <process-name>"
    ```
 
-5. For mobile: run `eas build --platform all` and submit to stores
+5. For mobile: `eas build --platform all` and submit to stores
 
 6. **Monitoring setup:**
    - Install and configure Sentry SDK — confirm errors are being captured
-   - Confirm PM2 logs are accessible: `pm2 logs <process-name>`
-   - Set up uptime monitoring (e.g. UptimeRobot or similar) on the production URL
+   - Confirm PM2 logs: `pm2 logs <process-name>`
+   - Set up uptime monitoring (UptimeRobot or similar) on production URL
 
-7. Verify with a health-check HTTP request to the production URL
-8. Update `CLAUDE.md` status to `PRODUCTION` with deploy date
-9. Tell the user: "Project is live at [URL]. Monitoring is active."
+7. Update `CLAUDE.md` status to `PRODUCTION` with deploy date
+8. Generate **Phase 8 Report** → `.claude/reports/phase-8-report.md`:
+   ```
+   # Phase 8 Report — Deployment
+   ## Staging URL: <URL> — Status: OK / FAIL
+   ## Production URL: <URL> — Status: OK / FAIL
+   ## Deploy Method: rsync + PM2 / EAS
+   ## Monitoring: Sentry + PM2 + UptimeRobot
+   ## Deploy Date: <date>
+   ```
+9. Run end-of-phase protocol
+10. Tell the user: "Project is live at [URL]. Moving to server testing."
+
+**Do not proceed to Phase 9 until user confirms production is live.**
 
 ---
 
-## Phase 10 — Project Report
+## Phase 9 — Server Testing
 
-**Goal:** Generate a full written report of the completed project.
+**Goal:** Verify production is stable and performing correctly under real conditions.
 
-Trigger: After Phase 9 (Deploy) is confirmed complete.
+**Agile context:** Post-deploy bugs become Jira issues of type "Bug" with priority "Critical". Fix and redeploy before proceeding.
 
 Steps:
-1. Generate `PROJECT-REPORT.md` in the project root with the following sections:
+1. **Smoke tests on production:**
+   - Hit all critical API endpoints via `curl` or Playwright
+   - Verify authentication flows work end to end
+   - Confirm database reads and writes work
+   - Verify file uploads, third-party integrations, and webhooks if applicable
 
+2. **Performance checks:**
+   - Check response times on key endpoints (target < 200ms p95)
+   - Verify memory and CPU are stable under load: `ssh user@host "pm2 monit"`
+
+3. **Log audit:**
+   - `pm2 logs <process-name> --lines 100` — check for errors or warnings
+   - Confirm Sentry is capturing errors (trigger a test error if needed)
+
+4. **Security spot-check on production:**
+   - Verify HTTPS is enforced (no HTTP access)
+   - Check security headers (X-Frame-Options, CSP, HSTS)
+   - Confirm sensitive env vars are not exposed in any response
+
+5. For any failures:
+   - Create Jira bug with priority Critical
+   - Fix and redeploy (mini Phase 8)
+   - Re-run smoke tests until all pass
+
+6. Generate **Phase 9 Report** → `.claude/reports/phase-9-report.md`:
+   ```
+   # Phase 9 Report — Server Testing
+   ## Smoke Tests: X/Y passed
+   ## Performance: p95 response time <Xms
+   ## Logs: clean / N errors found and fixed
+   ## Security: HTTPS, headers, env vars — PASSED
+   ## Critical Bugs Found: N | Fixed: N
+   ## Production Status: STABLE
+   ```
+7. Run end-of-phase protocol
+8. Ask: "Server testing passed. Ready to generate the final project report?"
+
+**Do not proceed to Phase 10 until all server tests pass.**
+
+---
+
+## Phase 10 — Final Report
+
+**Goal:** Generate a complete written record of the project for the client and team.
+
+**Agile context:** Close all Jira issues. Archive the sprint board. Tag the GitHub release.
+
+Steps:
+1. Close and transition all remaining Jira stories to "Done"
+2. Tag a GitHub release:
+   ```bash
+   git tag -a v1.0.0 -m "Production release"
+   git push origin v1.0.0
+   gh release create v1.0.0 --title "v1.0.0 — Initial Release" --notes "First production release"
+   ```
+3. Generate `PROJECT-REPORT.md` in the project root:
    ```
    # Project Report — <Project Name>
 
    ## Overview
-   - One paragraph summary of what was built and why
+   One paragraph: what was built, why, for whom.
 
    ## Timeline
    - Date started / date shipped
-   - Total phases completed
+   - Total phases: 10 | Total sprints: N
+
+   ## Market Research Summary
+   - Target market, key competitors, differentiation
 
    ## Requirements Summary
-   - Problem statement
-   - Target users
-   - Core flows delivered
-   - Items that were out of scope
+   - Problem statement | Target users | Core flows | Out of scope
 
-   ## Epics & Stories
-   - Table: Epic | Stories | Status
-   - Total acceptance criteria written
-   - Total edge cases covered
+   ## Epics & Stories (Jira)
+   - Table: Epic | Jira Key | Stories | Points | Status
+   - Total acceptance criteria | Total edge cases
 
    ## Design
-   - Figma file link
-   - Number of screens/frames designed
-   - Key design decisions
+   - Figma file link | Screens designed | Key decisions
 
    ## Tech Stack
-   - Framework, language, libraries used
-   - Reasoning for choices
+   - Framework, DB, libraries | Rationale
+
+   ## Development (Agile)
+   - Total sprints | Total velocity | Features delivered
 
    ## Testing
-   - Total tests written
-   - Pass rate (X/Y)
-   - Test types (unit / integration / E2E)
-   - Security checklist: passed
-   - UAT: confirmed by [user/client name]
+   - Tests written: N | Pass rate: X/Y
+   - Types: unit / integration / E2E
+   - Security: PASSED | UAT: confirmed by <name>
 
    ## Deployment
-   - Platform (web / Android / iOS)
-   - Build tool used
-   - Live URL or store link
-   - GitHub repo link
+   - Platform | Live URL | GitHub repo | GitHub release tag
    - Monitoring: Sentry + PM2 + uptime monitor
 
+   ## Server Testing
+   - Smoke tests: X/Y | Performance: p95 <Xms | Status: STABLE
+
    ## Lessons Learned
-   - What went well
-   - What was challenging
-   - What would be done differently
+   - What went well | What was challenging | What to do differently
 
-   ## Next Steps
-   - Suggested improvements or features for v2
+   ## Next Steps (v2 Suggestions)
    ```
-
-2. Push `PROJECT-REPORT.md` to GitHub
-3. Tell the user: "Full project report saved to PROJECT-REPORT.md and pushed to GitHub."
+4. Push `PROJECT-REPORT.md` and all `.claude/reports/*.md` to GitHub
+5. Tell the user: "Project complete. Report at PROJECT-REPORT.md. GitHub release v1.0.0 tagged."
 
 ---
 
 ## Rules
 
-- **Always create a GitHub repo at the very start of a new project** — before any code is written
-- Always read the project's `CLAUDE.md` and `.claude/` folder at the start of every session to understand the current phase
-- Never implement anything before Phase 4 is confirmed
-- Never deploy without Phase 8 tests, security checklist, and UAT passing
-- All epic work happens on `feature/epic-NNN` branches — never commit directly to `main`
-- Keep epic files updated as the single source of truth for what is done vs pending
-- Run the test suite after every epic completion in Phase 7 — never let failures accumulate
-- If the user asks "where are we?" summarize the current phase and what's pending
-- Commit and push to GitHub after each completed phase
+- **GitHub repo is created in Phase 4** — not before, not after
+- **Jira is the single source of truth** for all tasks, bugs, and stories — not just local files
+- Every phase ends with: report → git commit → git push → rsync to VPS
+- Always read the project's `CLAUDE.md` and `.claude/` folder at the start of every session
+- Never implement anything before Phase 3 (Jira stories) is confirmed
+- Never deploy without Phase 7 tests, security checklist, and UAT passing
+- All work happens on branches — never commit directly to `main`
+- Run the test suite after every sprint in Phase 6 — never let failures accumulate
+- If the user asks "where are we?" summarize the current phase, last sprint, and Jira backlog status
+- All Jira issue transitions happen via MCP — never just mark things done locally
 
 ---
 
 ## Lessons Learned (Applied to All Future Projects)
 
-These rules come from real mistakes made during the Smart Calculator project. Follow them every time.
-
-### 📦 Dependencies
+### Dependencies
 - **Always use `npx expo install <package>` — never `npm install`** for React Native / Expo projects
-  - `npx expo install` automatically picks the SDK-compatible version
-  - `npm install` installs the latest version which often breaks the build
-  - Run `npx expo install` for every single package: reanimated, async-storage, etc.
+  - `npx expo install` picks the SDK-compatible version automatically
+  - Run it for every package: reanimated, async-storage, etc.
 
-### 🏗️ Build
-- **Run a test EAS build at the end of Phase 7 (Build), not Phase 9 (Deploy)**
-  - Catch build errors (missing babel plugins, Node version mismatches, broken deps) early
-  - Command: `eas build --profile preview --platform android --non-interactive`
-  - Fix all build errors before moving to Phase 8 (Testing)
+### Build
+- **Run a test EAS build at the end of Phase 6 (Development), not Phase 8 (Deploy)**
+  - Catch build errors early: `eas build --profile preview --platform android --non-interactive`
+  - Fix all build errors before Phase 7 (Testing)
 
-### 🎨 Figma MCP
-- **Set up the Figma MCP plugin before Phase 6 (Design) begins — not during it**
-  - Steps to do at project start:
-    1. Start WebSocket server: `~/.bun/bin/bun /usr/local/lib/node_modules/claude-talk-to-figma-mcp/dist/socket.js &`
-    2. Open Figma Desktop → Plugins → Development → Claude Talk to Figma Plugin → Run → Connect
-    3. Confirm green "Connected" status before entering Phase 6
-  - If plugin code.js is missing: download from sonnylazuardi/cursor-talk-to-figma-mcp on GitHub
+### Figma MCP
+- **Set up the Figma MCP plugin before Phase 5 begins — not during it**
+  1. Start WebSocket server: `~/.bun/bin/bun /usr/local/lib/node_modules/claude-talk-to-figma-mcp/dist/socket.js &`
+  2. Open Figma Desktop → Plugins → Development → Claude Talk to Figma Plugin → Run → Connect
+  3. Confirm green "Connected" status
+
+### Jira MCP
+- **Always check `getVisibleJiraProjects` first** — don't create a duplicate project
+- Use `searchJiraIssuesUsingJql` to query current sprint status before planning the next
+- Always store the Jira project key in `.claude/jira.md` at the start of Phase 3
+
+### Database
+- Read `.claude/database-schema.md` before any code — never assume column names
+- Write migrations before controllers — always
