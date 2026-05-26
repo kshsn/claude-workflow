@@ -550,6 +550,19 @@ Steps:
 
 ---
 
+## Strict Enforcement Rules (Added After Buy2Go Violations)
+
+These rules were added because the buy2go project skipped Phase 3 (Jira), committed directly to `main`, and had no sprint branches. **Never repeat these mistakes.**
+
+1. **HARD STOP at Phase 3** — If Jira epics and stories do not exist, DO NOT write a single line of code. Not even a scaffold. Create the Jira project first.
+2. **NEVER commit to `main`** — All work goes on feature branches (`feature/PROJ-NNN-slug`). PRs only.
+3. **If a phase was skipped** — Stop everything, go back, and complete that phase retroactively before continuing. Document what was done and update Jira.
+4. **At the start of every session** — Read `CLAUDE.md`, check `.claude/jira.md` for the Jira project key, run `searchJiraIssuesUsingJql` to see current backlog status.
+5. **The local epic files (`.claude/epics/*.md`) are NOT a substitute for Jira** — They are local mirrors only. Jira is the single source of truth.
+6. **Migration stubs are not migrations** — Before deploying, verify every table has its real columns with `SHOW COLUMNS FROM <table>`. Never deploy with `id + timestamps` only tables.
+
+---
+
 ## Lessons Learned (Applied to All Future Projects)
 
 ### Dependencies
@@ -576,3 +589,24 @@ Steps:
 ### Database
 - Read `.claude/database-schema.md` before any code — never assume column names
 - Write migrations before controllers — always
+- **Verify every table has real columns before deploying** — run `SHOW COLUMNS FROM <table>` on the VPS. Stub migrations (`id + timestamps` only) will silently fail on the first INSERT.
+- **After any fresh DB deploy** — run `php artisan migrate:status` and manually spot-check 5 key tables
+
+### VPS / Server
+- **Always fill in `.claude/deployment/server.md`** with host, user, app path, PM2 name, SSH key location
+- **Never assume rsync = deployed** — SSH in and verify the running process, PHP/Node version, and DB connection after every deploy
+- **Store SSH credentials securely** — the server.md template has placeholders; fill them or store in a password manager and reference them
+- **APP_DEBUG must be false in production** — check `.env` on the VPS after every deploy
+
+### Flutter / Android Build
+- **Java 17 is required for Gradle 7.5** — Android Studio 2025+ ships Java 21 which breaks Gradle 7.5. Download Temurin 17 from Adoptium and set `JAVA_HOME` explicitly.
+  - Download: `https://github.com/adoptium/temurin17-binaries/releases`
+  - Build command: `JAVA_HOME="/path/to/jdk17" flutter run -d emulator-5554 -t lib/main_new.dart`
+- **Always check which `main.dart` to use** — old Flutter apps often have `main.dart` (old design) and `main_new.dart` (new design). Run with `-t lib/main_new.dart` for the new design.
+- **Kotlin version must match plugins** — if `location` or other plugins were compiled with Kotlin 1.9, set `ext.kotlin_version = '1.9.24'` in `android/build.gradle`.
+- **AGP 8+ requires `namespace`** in `app/build.gradle`: add `namespace 'com.your.package'` to the `android {}` block.
+- **Storage permissions on first deploy**: always run `php artisan storage:link` and `chmod -R 775 storage/` after rsync.
+
+### Staff / User Role Mismatch (Buy2Go Lesson)
+- **Controller-written roles must match query-expected roles** — e.g., `staffController.registerStaff` writes `user_role = 'Brand manager'` but `getBrandManagers` queries `user_role = 'BRANDS'`. Always grep the codebase for both sides before shipping.
+- **users.name, users.password must be nullable** if staff users are created without passwords (OTP-based login). Add this to migrations from day one.
